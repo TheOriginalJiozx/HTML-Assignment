@@ -9,10 +9,15 @@
     :root {
       --bg: #f6f7fb;
       --card: #ffffff;
-      --muted: #6b7280;
+      --muted: #1f2937;
+      /* darker for readability in light */
       --accent: #4f46e5;
       --shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
       --glass: rgba(255, 255, 255, 0.6);
+      --text: #0f172a;
+      --link: #1d4ed8;
+      --timeline-start: #dfe9ff;
+      --timeline-end: #f6f6ff;
     }
 
     [data-theme="dark"] {
@@ -21,18 +26,22 @@
       --muted: #9aa6bf;
       --accent: #7c5cff;
       --shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-      --glass: rgba(255, 255, 255, 0.02);
+      --glass: rgba(255, 255, 255, 0.05);
+      --text: #e0e7ff;
+      --link: #8b5cf6;
+      --timeline-start: #1c1f3a;
+      --timeline-end: #11131f;
     }
 
     * {
-      box-sizing: border-box
+      box-sizing: border-box;
     }
 
     body {
       font-family: Inter, system-ui, -apple-system, "Helvetica Neue", Arial;
       margin: 0;
-      background: linear-gradient(180deg, var(--bg), #e9eefb);
-      color: #0f172a;
+      background: linear-gradient(180deg, var(--bg), var(--bg));
+      color: var(--text);
       min-height: 100vh;
     }
 
@@ -47,13 +56,14 @@
 
     .topbar h1 {
       margin: 0;
-      font-size: 1.1rem
+      font-size: 1.1rem;
+      color: var(--text);
     }
 
     .topbar nav {
       display: flex;
       gap: 10px;
-      align-items: center
+      align-items: center;
     }
 
     .topbar a,
@@ -62,13 +72,21 @@
       border: 0;
       padding: 6px 10px;
       border-radius: 8px;
-      cursor: pointer
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--link);
+      transition: background 0.2s;
+    }
+
+    .topbar a:hover,
+    .topbar button:hover {
+      background: var(--glass);
     }
 
     .container {
       max-width: 1100px;
       margin: 24px auto;
-      padding: 0 18px
+      padding: 0 18px;
     }
 
     .card {
@@ -76,40 +94,41 @@
       padding: 18px;
       border-radius: 12px;
       margin-bottom: 16px;
-      box-shadow: var(--shadow)
+      box-shadow: var(--shadow);
     }
 
     .hero {
       display: flex;
       gap: 20px;
-      align-items: center
+      align-items: center;
     }
 
     .hero-left {
-      flex: 1
+      flex: 1;
     }
 
     .hero-right {
       display: flex;
       flex-direction: column;
-      align-items: center
+      align-items: center;
     }
 
     .time-big {
       font-size: 2rem;
       font-weight: 700;
-      margin-top: 10px
+      margin-top: 10px;
+      color: var(--text);
     }
 
     .next-hour {
       margin-top: 8px;
-      color: var(--muted)
+      color: var(--muted);
     }
 
     .grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px
+      gap: 12px;
     }
 
     .clock {
@@ -117,104 +136,111 @@
       padding: 12px;
       border-radius: 10px;
       background: linear-gradient(180deg, var(--glass), transparent);
-      box-shadow: inset 0 -6px 18px rgba(0, 0, 0, 0.02);
+      box-shadow: inset 0 -6px 18px rgba(0, 0, 0, 0.05);
+      color: var(--text);
     }
 
     .clock h4 {
-      margin: 0 0 6px 0
+      margin: 0 0 6px 0;
     }
 
     .server-time-row {
       display: flex;
       gap: 12px;
-      align-items: center
+      align-items: center;
     }
 
     .server-output {
       padding: 8px 12px;
       border-radius: 8px;
-      background: rgba(0, 0, 0, 0.03)
+      background: rgba(0, 0, 0, 0.03);
+      color: var(--text);
     }
 
     .tools-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px
+      gap: 12px;
     }
 
     .tool {
       padding: 12px;
-      border-radius: 10px
+      border-radius: 10px;
+      background: var(--card);
+      box-shadow: var(--shadow);
     }
 
     .big {
       font-size: 1.6rem;
       font-weight: 600;
-      margin: 8px 0
+      margin: 8px 0;
+      color: var(--text);
     }
 
     .tool-row {
       display: flex;
       gap: 8px;
-      flex-wrap: wrap
+      flex-wrap: wrap;
     }
 
     .timeline {
       height: 40px;
       border-radius: 6px;
-      background: linear-gradient(90deg, #dfe9ff, #f6f6ff);
+      background: linear-gradient(90deg, var(--timeline-start), var(--timeline-end));
       display: flex;
       align-items: center;
       padding: 6px;
-      gap: 6px
+      gap: 6px;
     }
 
     .timeline .segment {
       flex: 1;
       height: 22px;
       border-radius: 4px;
-      opacity: 0.6
+      opacity: 0.6;
+      background: var(--accent);
     }
 
     .foot {
       text-align: center;
-      color: var(--muted)
-    }
-
-    @media (max-width:700px) {
-      .hero {
-        flex-direction: column;
-        align-items: flex-start
-      }
-
-      .time-big {
-        font-size: 1.6rem
-      }
+      color: var(--muted);
     }
 
     input,
     select,
     button {
-      font: inherit
+      font: inherit;
     }
 
     button {
       background: var(--accent);
-      color: white;
+      color: var(--card);
       padding: 8px 12px;
       border-radius: 8px;
-      border: 0
+      border: 0;
+      cursor: pointer;
     }
 
     button[disabled] {
-      opacity: 0.5
+      opacity: 0.5;
     }
 
     .tz-controls {
       display: flex;
       gap: 8px;
       align-items: center;
-      margin-bottom: 12px
+      margin-bottom: 12px;
+    }
+
+    @media (max-width:700px) {
+      .hero {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .time-big {
+        font-size: 1.6rem;
+      }
     }
   </style>
 </head>
@@ -551,8 +577,10 @@
     convTo.value = 'UTC';
 
     document.getElementById('convTime').onchange = doConvert;
+
     convFrom.onchange = doConvert;
     convTo.onchange = doConvert;
+
     function doConvert() {
       const time = document.getElementById('convTime').value || '12:00';
       const [hh, mm] = time.split(':').map(Number);
@@ -570,6 +598,7 @@
     }
 
     const allSelects = [tzSelect];
+
     for (const s of allSelects) {
       tzList.forEach(tz => {
         const o = document.createElement('option'); o.value = tz; o.textContent = tz; s.appendChild(o);
