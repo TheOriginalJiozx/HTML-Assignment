@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Time Playground</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --accent: #4f46e5;
+      --shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+      --glass: rgba(255, 255, 255, 0.6);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b1221;
+      --card: #071026;
+      --muted: #9aa6bf;
+      --accent: #7c5cff;
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+      --glass: rgba(255, 255, 255, 0.02);
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, "Helvetica Neue", Arial;
+      margin: 0;
+      background: linear-gradient(180deg, var(--bg), #e9eefb);
+      color: #0f172a;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 1.1rem
+    }
+
+    .topbar nav {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .topbar a,
+    .topbar button {
+      background: none;
+      border: 0;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 18px
+    }
+
+    .card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow)
+    }
+
+    .hero {
+      display: flex;
+      gap: 20px;
+      align-items: center
+    }
+
+    .hero-left {
+      flex: 1
+    }
+
+    .hero-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center
+    }
+
+    .time-big {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-top: 10px
+    }
+
+    .next-hour {
+      margin-top: 8px;
+      color: var(--muted)
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px
+    }
+
+    .clock {
+      width: 220px;
+      padding: 12px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, var(--glass), transparent);
+      box-shadow: inset 0 -6px 18px rgba(0, 0, 0, 0.02);
+    }
+
+    .clock h4 {
+      margin: 0 0 6px 0
+    }
+
+    .server-time-row {
+      display: flex;
+      gap: 12px;
+      align-items: center
+    }
+
+    .server-output {
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.03)
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px
+    }
+
+    .tool {
+      padding: 12px;
+      border-radius: 10px
+    }
+
+    .big {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin: 8px 0
+    }
+
+    .tool-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .timeline {
+      height: 40px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #dfe9ff, #f6f6ff);
+      display: flex;
+      align-items: center;
+      padding: 6px;
+      gap: 6px
+    }
+
+    .timeline .segment {
+      flex: 1;
+      height: 22px;
+      border-radius: 4px;
+      opacity: 0.6
+    }
+
+    .foot {
+      text-align: center;
+      color: var(--muted)
+    }
+
+    @media (max-width:700px) {
+      .hero {
+        flex-direction: column;
+        align-items: flex-start
+      }
+
+      .time-big {
+        font-size: 1.6rem
+      }
+    }
+
+    input,
+    select,
+    button {
+      font: inherit
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 0
+    }
+
+    button[disabled] {
+      opacity: 0.5
+    }
+
+    .tz-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <h1>⏳ Time Playground</h1>
+    <nav>
+      <button id="themeToggle">Toggle Theme</button>
+      <a href="#world">World Clocks</a>
+      <a href="#server">Server Time</a>
+      <a href="#tools">Tools</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section id="hero" class="card hero">
+      <div class="hero-left">
+        <h2>Time is an interface</h2>
+        <p>Explore local & server time, play with a stopwatch, start a Pomodoro, or glance across time zones.</p>
+        <div class="next-hour">Next hour in: <span id="toNextHour">--:--</span></div>
+      </div>
+      <div class="hero-right">
+        <canvas id="sunCanvas" width="300" height="200" aria-hidden="true"></canvas>
+        <div class="time-big" id="localTime">--:--:--</div>
+      </div>
+    </section>
+
+    <section id="world" class="card">
+      <h3>World Clocks</h3>
+      <div class="tz-controls">
+        <select id="tzSelect">
+          <option value="Europe/Copenhagen" selected>Copenhagen</option>
+          <option value="UTC">UTC</option>
+          <option value="America/New York">NewYork</option>
+          <option value="Asia/Tokyo">Tokyo</option>
+          <option value="Pacific/Auckland">Auckland</option>
+          <option value="Europe/London">London</option>
+        </select>
+        <button id="addTz">Add</button>
+      </div>
+      <div id="worldClocks" class="grid"></div>
+    </section>
+
+    <section id="server" class="card">
+      <h3>Server Time</h3>
+      <p>Fetches live server time via API (useful to compare client vs server).</p>
+      <div class="server-time-row">
+        <button id="fetchServerTime">Fetch server time</button>
+        <div class="server-output" id="serverTimeOutput">Not fetched yet</div>
+      </div>
+    </section>
+
+    <section id="tools" class="card">
+      <h3>Tools</h3>
+      <div class="tools-grid">
+        <div class="tool">
+          <h4>Stopwatch</h4>
+          <div class="big" id="swDisplay">00:00.00</div>
+          <div class="tool-row">
+            <button id="swStart">Start</button>
+            <button id="swStop">Stop</button>
+            <button id="swReset">Reset</button>
+          </div>
+        </div>
+
+        <div class="tool">
+          <h4>Timer / Pomodoro</h4>
+          <label>Minutes: <input id="timerMinutes" type="number" min="1" value="25"></label>
+          <div class="big" id="timerDisplay">25:00</div>
+          <div class="tool-row">
+            <button id="timerStart">Start</button>
+            <button id="timerStop">Stop</button>
+            <button id="timerReset">Reset</button>
+          </div>
+        </div>
+
+        <div class="tool">
+          <h4>Time Slider</h4>
+          <p>Slide to preview how your day looks at different hours</p>
+          <input id="timeSlider" type="range" min="0" max="23" value="12">
+          <div id="sliderOutput">12:00</div>
+          <div id="dayPreview" class="timeline"></div>
+        </div>
+
+        <div class="tool">
+          <h4>Timezone Converter</h4>
+          <label>Time: <input id="convTime" type="time" value="12:00"></label>
+          <label>From: <select id="convFrom"></select></label>
+          <label>To: <select id="convTo"></select></label>
+          <div id="convResult">—</div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="card foot">
+      <small>HTML website served with Express that revolves around time.</small>
+    </footer>
+  </main>
+
+  <script>
+    const localTimeEl = document.getElementById('localTime');
+    const toNextHourEl = document.getElementById('toNextHour');
+    const worldClocks = document.getElementById('worldClocks');
+    const tzSelect = document.getElementById('tzSelect');
+    const addTzBtn = document.getElementById('addTz');
+
+    const fetchServerTimeBtn = document.getElementById('fetchServerTime');
+    const serverTimeOutput = document.getElementById('serverTimeOutput');
+
+    let swInterval = null;
+    let swStartTime = null;
+    let swElapsed = 0;
+    const swDisplay = document.getElementById('swDisplay');
+
+    document.getElementById('swStart').onclick = () => {
+      if (!swInterval) {
+        swStartTime = Date.now() - swElapsed;
+        swInterval = setInterval(updateSW, 30);
+      }
+    };
+
+    document.getElementById('swStop').onclick = () => {
+      clearInterval(swInterval);
+      swInterval = null;
+      swElapsed = Date.now() - swStartTime;
+    };
+
+    document.getElementById('swReset').onclick = () => {
+      clearInterval(swInterval);
+      swInterval = null;
+      swElapsed = 0;
+      swStartTime = null;
+      swDisplay.textContent = '00:00.00';
+    };
+
+    function updateSW() {
+      const t = Date.now() - swStartTime;
+      const ms = Math.floor((t % 1000) / 10);
+      const s = Math.floor((t / 1000) % 60).toString().padStart(2, '0');
+      const m = Math.floor(t / 60000).toString().padStart(2, '0');
+      swDisplay.textContent = `${m}:${s}.${ms.toString().padStart(2, '0')}`;
+    }
+
+    let timerCountdown = null;
+    let timerRemaining = null;
+    const timerDisplay = document.getElementById('timerDisplay');
+
+    document.getElementById('timerStart').onclick = () => {
+      const mins = Number(document.getElementById('timerMinutes').value) || 25;
+      if (!timerCountdown) {
+        timerRemaining = mins * 60 * 1000;
+        const end = Date.now() + timerRemaining;
+        timerCountdown = setInterval(() => {
+          timerRemaining = end - Date.now();
+          if (timerRemaining <= 0) {
+            clearInterval(timerCountdown); timerCountdown = null;
+            timerDisplay.textContent = '00:00';
+            alert('Timer done — take a break!');
+          } else {
+            const mm = Math.floor(timerRemaining / 60000).toString().padStart(2, '0');
+            const ss = Math.floor((timerRemaining % 60000) / 1000).toString().padStart(2, '0');
+            timerDisplay.textContent = `${mm}:${ss}`;
+          }
+        }, 300);
+      }
+    };
+
+    document.getElementById('timerStop').onclick = () => {
+      clearInterval(timerCountdown); timerCountdown = null;
+    };
+
+    document.getElementById('timerReset').onclick = () => {
+      clearInterval(timerCountdown); timerCountdown = null;
+      const m = Number(document.getElementById('timerMinutes').value) || 25;
+      timerDisplay.textContent = `${m.toString().padStart(2, '0')}:00`;
+    };
+
+    const dayPreview = document.getElementById('dayPreview');
+    const timeSlider = document.getElementById('timeSlider');
+    const sliderOutput = document.getElementById('sliderOutput');
+
+    function renderDayPreview(hour) {
+      dayPreview.innerHTML = '';
+      for (let h = 0; h < 24; h++) {
+        const seg = document.createElement('div');
+        seg.className = 'segment';
+        const pct = Math.abs(h - hour);
+        if (h === hour) seg.style.opacity = 1;
+        seg.style.background = `linear-gradient(180deg, rgba(${Math.max(200 - 8 * Math.abs(h - 13), 0)}, ${180 + Math.min(8 * h, 75)}, ${200 - Math.min(6 * h, 120)}, 0.9), transparent)`;
+        dayPreview.appendChild(seg);
+      }
+    }
+
+    timeSlider.oninput = (e) => {
+      const h = Number(e.target.value);
+      sliderOutput.textContent = `${h.toString().padStart(2, '0')}:00`;
+      renderDayPreview(h);
+    };
+
+    renderDayPreview(Number(timeSlider.value));
+
+    function updateLocalTime() {
+      const now = new Date();
+      localTimeEl.textContent = now.toLocaleTimeString();
+      const next = new Date(now);
+      next.setMinutes(60, 0, 0);
+      const diff = next - now;
+      const mins = Math.floor(diff / 60000).toString().padStart(2, '0');
+      const secs = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+      toNextHourEl.textContent = `${mins}:${secs}`;
+    }
+
+    setInterval(updateLocalTime, 250);
+    updateLocalTime();
+
+    const canvas = document.getElementById('sunCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function drawSun() {
+      const now = new Date();
+      const h = now.getHours() + now.getMinutes() / 60;
+      const t = (h / 24) * Math.PI * 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, '#a0d8ff');
+      grad.addColorStop(1, '#ffffff');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const rx = canvas.width / 2 - 30;
+      const ry = canvas.height - 40;
+      const x = cx + Math.cos(t - Math.PI / 2) * rx;
+      const y = ry + Math.sin(t - Math.PI / 2) * -ry * 0.8;
+
+      if (h >= 6 && h < 18) {
+        const radius = 22;
+        const sunGrad = ctx.createRadialGradient(x, y, 4, x, y, 30);
+        sunGrad.addColorStop(0, '#fff7b0');
+        sunGrad.addColorStop(1, '#ffd34d');
+        ctx.fillStyle = sunGrad;
+        ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.fillStyle = '#f4f7ff';
+        ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(8,12,25,0.4)';
+        ctx.beginPath(); ctx.arc(x + 6, y - 3, 18, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+    }
+
+    setInterval(drawSun, 1000);
+    drawSun();
+
+    function renderClock(zone) {
+      const id = `clock-${zone.replace(/\W/g, '')}`;
+      const card = document.createElement('div');
+      card.className = 'clock';
+      card.id = id;
+      const title = document.createElement('h4');
+      title.textContent = zone;
+      const time = document.createElement('div');
+      time.className = 'time small';
+      time.textContent = '--:--:--';
+      card.append(title, time);
+      worldClocks.appendChild(card);
+
+      function tick() {
+        try {
+          const now = new Date().toLocaleString('en-US', { timeZone: zone });
+          const d = new Date(now);
+          time.textContent = d.toLocaleTimeString();
+        } catch (e) {
+          time.textContent = 'N/A';
+        }
+      }
+
+      tick();
+      return setInterval(tick, 500);
+    }
+
+    const tzIntervals = [];
+    addTzBtn.onclick = () => {
+      const tz = tzSelect.value;
+      if ([...document.querySelectorAll('.clock h4')].some(h => h.textContent === tz)) return;
+      const ii = renderClock(tz);
+      tzIntervals.push(ii);
+    };
+
+    ['Europe/Copenhagen', 'UTC', 'America/New_York', 'Asia/Tokyo'].forEach(tz => {
+      renderClock(tz);
+    });
+
+    fetchServerTimeBtn.onclick = async () => {
+      try {
+        fetchServerTimeBtn.disabled = true;
+        serverTimeOutput.textContent = 'Fetching...';
+        const r = await fetch('/api/server-time');
+        const j = await r.json();
+        serverTimeOutput.textContent = `Server ISO: ${j.iso} — Local: ${j.locale}`;
+      } catch (e) {
+        serverTimeOutput.textContent = 'Error fetching';
+      } finally {
+        fetchServerTimeBtn.disabled = false;
+      }
+    };
+
+    const themeToggle = document.getElementById('themeToggle');
+    function setTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+    }
+
+    themeToggle.onclick = () => {
+      const cur = document.documentElement.getAttribute('data-theme') || 'light';
+      setTheme(cur === 'light' ? 'dark' : 'light');
+    };
+
+    setTheme(localStorage.getItem('theme') || 'light');
+
+    const tzList = ['Europe/Copenhagen', 'UTC', 'America/New_York', 'Europe/London', 'Asia/Tokyo', 'Pacific/Auckland'];
+    const convFrom = document.getElementById('convFrom');
+    const convTo = document.getElementById('convTo');
+
+    tzList.forEach(tz => {
+      const o1 = document.createElement('option'); o1.value = tz; o1.textContent = tz; convFrom.appendChild(o1);
+      const o2 = document.createElement('option'); o2.value = tz; o2.textContent = tz; convTo.appendChild(o2);
+    });
+
+    convFrom.value = 'Europe/Copenhagen';
+    convTo.value = 'UTC';
+
+    document.getElementById('convTime').onchange = doConvert;
+    convFrom.onchange = doConvert;
+    convTo.onchange = doConvert;
+    function doConvert() {
+      const time = document.getElementById('convTime').value || '12:00';
+      const [hh, mm] = time.split(':').map(Number);
+      const from = convFrom.value;
+      const to = convTo.value;
+      const now = new Date();
+      now.setHours(hh, mm, 0, 0);
+      try {
+        const isoInFrom = new Date(now.toLocaleString('en-US', { timeZone: from }));
+        const formatted = isoInFrom.toLocaleTimeString('en-GB', { timeZone: to, hour12: false });
+        document.getElementById('convResult').textContent = `${time} ${from} → ${formatted} ${to}`;
+      } catch (e) {
+        document.getElementById('convResult').textContent = 'Conversion not available';
+      }
+    }
+
+    const allSelects = [tzSelect];
+    for (const s of allSelects) {
+      tzList.forEach(tz => {
+        const o = document.createElement('option'); o.value = tz; o.textContent = tz; s.appendChild(o);
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 't') themeToggle.click();
+    });
+  </script>
+</body>
+
+</html>
